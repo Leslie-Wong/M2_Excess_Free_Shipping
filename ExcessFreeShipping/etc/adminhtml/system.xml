@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+	<system>
+		<tab id="excessfreeshipping" translate="label" sortOrder="1">
+			<label>Excess Free Shipping</label>
+		</tab>
+		<section id="excessfreeshipping" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+			<label>Settings</label>
+			<tab>excessfreeshipping</tab>
+			<resource>Arlesfishes_ExcessFreeShipping::config_arlesfishes_excessfreeshipping</resource>
+			<group id="settings" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+				<label>Excess Free Shipping Settings</label>
+				<field id="enable" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Enable Excess Free Shipping</label>
+					<comment/>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				</field>
+				<field id="excess" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Excess Free Shipping</label>
+					<comment/>
+				</field>
+				<field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Title</label>
+					<comment/>
+				</field>
+				<field id="specificcountry" translate="label" type="multiselect" sortOrder="91" showInDefault="1" showInWebsite="1" showInStore="0">
+						<label>Apply to Specific Countries</label>
+						<source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+						<can_be_empty>1</can_be_empty>
+				</field>
+			</group>
+		</section>
+	</system>
+</config>
