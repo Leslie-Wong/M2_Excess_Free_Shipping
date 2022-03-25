@@ -22,7 +22,12 @@ class ConfigProvider implements ConfigProviderInterface
    */
   public function getConfig()
   {
-    
+    // $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/Arlesfishes_ExcessFreeShipping.log');
+    // $logger = new \Zend\Log\Logger();
+    // $logger->addWriter($writer);
+
+    // $logger->info('getConfig');
+
     $config = [
       'excessFreeShipping' => [
           'title' => $this->configData->getConfigData('title'),

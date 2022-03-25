@@ -82,26 +82,26 @@ class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTota
     ) {
         parent::collect($quote, $shippingAssignment, $total);
 
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/Arlesfishes_ExcessFreeShipping.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
+        // $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/Arlesfishes_ExcessFreeShipping.log');
+        // $logger = new \Zend\Log\Logger();
+        // $logger->addWriter($writer);
 
         // $logger->info('Shipping specificcountry: '. json_encode($this->getConfigData('specificcountry')) );
         // $logger->info('Shipping getData: '. json_encode($quote->getData()) );
-        // $logger->info('Shipping strpos: '. var_export(str_contains($this->getConfigData('specificcountry'), $quote->getShippingAddress()->getCountryId()), true)  );
-        if($this->getConfigData('enable') == 1 && $this->getConfigData('specificcountry') && str_contains($this->getConfigData('specificcountry'), $quote->getShippingAddress()->getCountryId())){
-            if($this->getConfigData('excess') != "" && $total->getSubtotalWithDiscount() >= floatval($this->getConfigData('excess'))){
+        // $logger->info('Shipping $total: '. var_export($total, true)  );
+        if($this->getConfigData('enable') == 1 && $this->getConfigData('specificcountry') && $quote->getShippingAddress()->getCountryId() && str_contains($this->getConfigData('specificcountry'), $quote->getShippingAddress()->getCountryId())){
+            if($this->getConfigData('excess') != "" && $total->getSubtotalWithDiscount() >= floatval($this->getConfigData('excess')) && $total->getShippingAmount() > 0){
 
-                $logger->info('Shipping Amount: '.$total->getShippingAmount());
+                // $logger->info('Shipping Amount: '.$total->getShippingAmount());
                 
                 $baseDiscount = $total->getShippingAmount();
                 $discount =  $this->priceCurrency->convert($baseDiscount);
                 // $logger->info('Shipping discount: '.$total->getShippingAmount());
                 $total->addTotalAmount('excessfreeshipping', -$discount);
                 $total->addBaseTotalAmount('excessfreeshipping', -$baseDiscount);
-                $total->setBaseGrandTotal($total->getBaseGrandTotal() - $baseDiscount);
+                // $total->setBaseGrandTotal($total->getBaseGrandTotal() - $baseDiscount);
                 // $quote->setExcessfreeshipping(-$discount);
-                $quote->setExcessFreeShippingValue(floatval(-$discount));
+                $quote->setExcessFreeShippingValue($discount);
                 $total->setBaseShippingDiscountAmount($discount);
                 $quote->save();
                 // $logger->info('Shipping getData 2: '. json_encode($quote->getData()) );
@@ -131,13 +131,15 @@ class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTota
                 //     $total->addBaseTotalAmount($this->getCode(), $discountAmount);
                 // }
             }else{
-                $quote->setExcessFreeShippingValue(null);
-                // $logger->info('Shipping getData [else]: '. json_encode($quote->getData()) );
-                $quote->save();
+                if($total->getSubtotal() > 0){
+                    $quote->setExcessFreeShippingValue(NULL);
+                    // $logger->info('Shipping getData [else]: '. json_encode($quote->getData()) );
+                    $quote->save();
+                }
             }
         }else{
             if($quote->getExcessFreeShippingValue() != null){
-                $quote->setExcessFreeShippingValue(null);
+                $quote->setExcessFreeShippingValue(NULL);
                 $quote->save();
                 // $logger->info('Shipping getData [else 2]: '. json_encode($quote->getData()) );
             }
@@ -159,9 +161,14 @@ class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTota
      */
     public function fetch(\Magento\Quote\Model\Quote $quote, \Magento\Quote\Model\Quote\Address\Total $total)
     {
-        $result = null;
-        $amount = $total->getDiscountAmount();
+        // $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/Arlesfishes_ExcessFreeShipping.log');
+        // $logger = new \Zend\Log\Logger();
+        // $logger->addWriter($writer);
 
+        $result = null;
+        $amount = $quote->getExcessFreeShippingValue();
+
+        // $logger->info('Shipping getData fetch: '. json_encode($quote->getData()) );
         // ONLY return 1 discount. Need to append existing
         //see app/code/Magento/Quote/Model/Quote/Address.php
         
@@ -169,8 +176,8 @@ class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTota
             $description = $total->getDiscountDescription();
             $result = [
                 'code' => $this->getCode(),
-                'title' => strlen($description) ? __('Discount (%1)', $description) : __('Discount'),
-                'value' => $amount
+                'title' => __('Excess Free Shipping'),
+                'value' => $total->getShippingAmount(),
             ];
         }
         return $result;
