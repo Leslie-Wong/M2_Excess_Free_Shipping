@@ -1,6 +1,6 @@
 <?php
 
-namespace Arlesfishes\ExcessFreeShipping\Model\Quote;
+namespace Arlesfishes\ExcessFreeShipping2\Model\Quote;
 
 class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 {
@@ -44,9 +44,9 @@ class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTota
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\SalesRule\Model\Validator $validator,
         \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
-        \Arlesfishes\ExcessFreeShipping\Helper\ConfigData $configData
+        \Arlesfishes\ExcessFreeShipping2\Helper\ConfigData $configData
     ) {
-        $this->setCode('excessfreeshipping');
+        $this->setCode('excessfreeshipping2');
         $this->eventManager = $eventManager;
         $this->calculator = $validator;
         $this->storeManager = $storeManager;
@@ -82,53 +82,23 @@ class FreeShipping extends \Magento\Quote\Model\Quote\Address\Total\AbstractTota
     ) {
         parent::collect($quote, $shippingAssignment, $total);
 
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/Arlesfishes_ExcessFreeShipping.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
+        // $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/Arlesfishes_ExcessFreeShipping.log');
+        // $logger = new \Zend\Log\Logger();
+        // $logger->addWriter($writer);
 
-        $logger->info('Shipping quote: '. json_encode($quote->getData()) );
-        $logger->info('Shipping total: '. json_encode($total->getData()) );
-        // foreach (json_decode($this->getConfigData('country_with_amount')) as $key => $value) {
-        //     $logger->info($key . "attribute_name => ". var_export($value->country_code,true));
-        //     // $logger->info($key . "attribute_name => ". $value['attribute_name'] . "dropdown_field => ". $value['dropdown_field'] );
-        // }
+        // $logger->info('Shipping specificcountry: '. json_encode($this->getConfigData('specificcountry')) );
         // $logger->info('Shipping getData: '. json_encode($quote->getData()) );
         // $logger->info('Shipping $total: '. var_export($total, true)  );
-        $country_true = false;
-        $over_amount = 0;
+        if($this->getConfigData('enable') == 1 && $this->getConfigData('specificcountry') && $quote->getShippingAddress()->getCountryId() && str_contains($this->getConfigData('specificcountry'), $quote->getShippingAddress()->getCountryId())){
+            if($this->getConfigData('excess') != "" && $total->getSubtotalWithDiscount() >= floatval($this->getConfigData('excess')) && $total->getShippingAmount() > 0){
 
-        $country_with_amount_list = json_decode($this->getConfigData('country_with_amount'), true);
-        
-        $country_with_amount = array_column($country_with_amount_list, null, 'country_code')['ALL'] ?? false;
-
-        if($country_with_amount){
-            $country_true = true;
-            $over_amount = $country_with_amount['over_amount'];
-        }else{
-            $country_with_amount = array_column($country_with_amount_list, null, 'country_code')[strtoupper($quote->getShippingAddress()->getCountryId())] ?? false;
-
-            if($country_with_amount){
-                $country_true = true;
-                $over_amount = $country_with_amount['over_amount'];
-            }else if($country_with_amount = array_column($country_with_amount_list, null, 'country_code')["OTHERS"] ?? false){
-                $country_true = true;
-                $over_amount = $country_with_amount['over_amount'];
-            }
-        }
-        
-
-        // if($this->getConfigData('enable') == 1 && $this->getConfigData('specificcountry') && $quote->getShippingAddress()->getCountryId() && str_contains($this->getConfigData('specificcountry'), $quote->getShippingAddress()->getCountryId())){
-        //     if($this->getConfigData('excess') != "" && $total->getSubtotalWithDiscount() >= floatval($this->getConfigData('excess')) && $total->getShippingAmount() > 0){
-        if($this->getConfigData('enable') == 1 && $this->getConfigData('specificcountry') && $country_true){
-            if(($total->getSubtotalWithDiscount() + $total->getTaxAmount()) >= floatval($over_amount) && $total->getShippingAmount() > 0){
-    
                 // $logger->info('Shipping Amount: '.$total->getShippingAmount());
                 
                 $baseDiscount = $total->getShippingAmount();
                 $discount =  $this->priceCurrency->convert($baseDiscount);
                 // $logger->info('Shipping discount: '.$total->getShippingAmount());
-                $total->addTotalAmount('excessfreeshipping', -$discount);
-                $total->addBaseTotalAmount('excessfreeshipping', -$baseDiscount);
+                $total->addTotalAmount('excessfreeshipping2', -$discount);
+                $total->addBaseTotalAmount('excessfreeshipping2', -$baseDiscount);
                 // $total->setBaseGrandTotal($total->getBaseGrandTotal() - $baseDiscount);
                 // $quote->setExcessfreeshipping(-$discount);
                 $quote->setExcessFreeShippingValue($discount);

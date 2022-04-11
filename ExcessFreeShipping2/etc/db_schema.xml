@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+	<table name="quote">
+		<column name="excess_free_shipping_value" nullable="true" xsi:type="decimal" comment="excess free shipping value" scale="2" precision="10"/>
+	</table>
+</schema>
